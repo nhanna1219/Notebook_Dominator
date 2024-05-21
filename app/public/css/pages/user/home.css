@@ -1,0 +1,28 @@
+.card {
+    transition: transform 0.2s ease-in-out;
+    /* height: 170px; */
+}
+
+.card:hover {
+    transform: scale(1.04); 
+    cursor: pointer;
+}
+
+.card .card-title {
+
+}
+
+.card .card-text{
+    color: #f1efef;
+    padding: 8px;   
+    border-radius: 10px;
+    height: 85px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.card .card-body {
+    background-color: rgb(28, 74, 110);
+    
+}
+

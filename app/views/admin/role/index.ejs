@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('../../partials/head', {title: 'Quản lý người dùng' }) %>
+    <link rel="stylesheet" href="/css/pages/admin/role.css" />
+</head>
+
+<body>
+  <div class="container mt-3">
+    <h2 class="fw-semibold">Quản lý người dùng</h2>
+    <div class="d-flex flex-column">
+      <a href="#" class="btn mt-3 create-role-btn shadow-sm ms-auto" style="width: 150px;">Thêm vai trò</a>
+      <table id="role-tbl"
+        class="table table-striped table-bordered table-hover mt-3 mb-5 text-center ms-auto bg-white shadow h-25"
+        style="width: 100%">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Tên vai trò</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% roles.forEach((item)=> { %>
+            <tr>
+              <td>
+                <%= item.id %>
+              </td>
+              <td>
+                <span class="role-name">
+                  <%= item.name %>
+                </span>
+                <input type="text" class="input-group my-2 text-center rounded role-name-input d-none"
+                  value="<%= item.name %>" />
+              </td>
+              <td>
+                <% if (item.is_active==1) { %>
+                  <span class="badge rounded-pill bg-success">Active</span>
+                  <% } else if (item.is_active==-1) { %>
+                    <span class="badge rounded-pill bg-secondary">Inactive</span>
+                    <% } else { %>
+                      <span class="badge rounded-pill bg-info text-dark">Unknown</span>
+                      <% } %>
+                        <select class="form-select status-select form-select-sm my-2 d-none"
+                          aria-label="Chọn Trạng Thái">
+                          <option value="1">Active</option>
+                          <option value="-1">Inactive</option>
+                        </select>
+              </td>
+              <td>
+                <a href="#" class="btn btn-sm edit-btn mx-3"><i class="ti ti-pencil-alt"></i></a>
+                <a href="#" class="btn btn-sm del-btn btn-danger"><i class="ti ti-trash"></i></a>
+                <a href="#" class="btn btn-sm update-btn btn-primary mt-2 d-none mx-3"><i class="ti ti-check"></i></a>
+                <a href="#" class="btn btn-sm cancel-btn btn-secondary mt-2 d-none"><i class="ti ti-close"></i></a>
+              </td>
+            </tr>
+            <% }) %>
+        </tbody>
+      </table>
+      <table id="user-tbl" class="table table-striped table-bordered table-hover bg-white text-center shadow"
+        style="width: 100%">
+        <thead class="table-dark"></thead>
+      </table>
+      <div class="flex mt-4">
+        <button type="button" data-bs-toggle="modal" data-bs-target="#add-user-modal"
+          class="btn  open-user-form-btn shadow-sm rounded-2">
+          Thêm người dùng
+        </button>
+        <button type="button" onclick="location.href='/logout';" class="btn btn-danger float-end shadow-sm rounded-2">
+          Đăng xuất
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- Modal Add User-->
+  <div id="add-user-modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: #eeeeeec6;">
+          <h5 class="modal-title fw-semibold">Thông tin người dùng</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body px-5" style="background-color: #eeeeee8c;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="d-none">
+            <symbol id="exclamation-triangle-fill" viewBox="0 0 16 16">
+              <path
+                d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
+            </symbol>
+          </svg>
+          <div id="validationAlert" class="alert alert-danger d-flex align-items-center d-none" role="alert">
+            <svg class="bi flex-shrink-0 me-2" style="fill: rgb(88, 21, 28);width: 20px;height: 15px;" role="img"
+              aria-label="Danger:">
+              <use xlink:href="#exclamation-triangle-fill" />
+            </svg>
+            <div id="errorMsg">
+            </div>
+          </div>
+          <form id="user-info">
+            <div class="d-flex">
+              <!-- Last Name (Ho) -->
+              <div class="form-group">
+                <label class="required" for="userLastName">Họ</label>
+                <input type="text" class="form-control" id="userLastName" placeholder="Nhập họ">
+              </div>
+              <!-- First Name (Ten) -->
+              <div class="ms-4 form-group" style="width: 239px;">
+                <label class="required" for="userFirstName">Tên</label>
+                <input type="text" class="form-control" id="userFirstName" placeholder="Nhập tên">
+              </div>
+              <!-- Role (Vai tro) -->
+              <div class="ms-4 form-group">
+                <label class="required" for="userRole">Vai trò</label>
+                <select class="form-control" id="userRole" style="padding-right: 35px;">
+                  <% roles.forEach((item)=> { %>
+                    <option value="<%= item.id %>">
+                      <%= item.name %>
+                    </option>
+                    <% }) %>
+                </select>
+              </div>
+            </div>
+            <!-- Subject (Bo mon) -->
+            <div class="form-group">
+              <label class="required" for="userSubject">Phụ trách môn</label>
+              <select class="form-control" id="userSubject" style="padding-right: 35px;">
+                <% subjects.forEach((item)=> { %>
+                  <option value="<%= item.id %>">
+                    <%= item.title %>
+                  </option>
+                  <% }) %>
+              </select>
+            </div>
+            <!-- Email -->
+            <div class="form-group">
+              <label class="required" for="userEmail">Email</label>
+              <input type="email" class="form-control" id="userEmail" placeholder="Nhập email">
+            </div>
+            <!-- Username (Ten dang nhap) -->
+            <div class="form-group">
+              <label class="required" for="username">Tên đăng nhập</label>
+              <input type="text" class="form-control" id="username" placeholder="Nhập tên đăng nhập">
+            </div>
+
+          </form>
+        </div>
+        <div class="modal-footer" style="background-color: #eeeeeec6;">
+          <button type="button" class="btn btn-secondary rounded-2" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="add-user-btn btn btn-primary rounded-2">Thêm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- End Modal -->
+  <%- include('../../partials/script') %>
+    <script src="/dist/users.bundle.js" type="application/javascript"></script>
+</body>
+
+</html>

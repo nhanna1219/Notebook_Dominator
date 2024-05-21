@@ -1,123 +1,211 @@
 "use strict";
+const { generateRandomPassword, hashPassword } = require("../utils/passwordUtils");
 const sql = require("./db");
-// class User {
-//   constructor(user){
-//     this.firstName = user?.
-//   }
-// }
 class Role {
   constructor(role) {
     this.name = role?.name;
     this.is_active = role?.is_active;
   }
 }
-// class BangDia {
-//   constructor(bangDia) {
-//     this.tenBangDia = bangDia?.tenBangDia;
-//   }
-// }
 
 class RoleService {
-  static insert(role, callback) {
-    sql.query("INSERT INTO roles SET ?", role, (err, res) => {
-      if (err) {
-        console.log("err", err);
-        callback(err, null);
-        return;
+  static async insert(role) {
+    try {
+      const [res] = await sql.promise().query("INSERT INTO roles SET ?", [role]);
+      console.log("Inserted:", { id: res.insertId, ...role });
+      return { id: res.insertId, ...role };
+    } catch (err) {
+      console.error("Error on insert:", err);
+
+      // Check for duplicate entry error
+      if (err.code === 'ER_DUP_ENTRY' || err.errno === 1062) {
+        return { error: "Duplicate entry", details: err.sqlMessage };
       }
-      console.log("inserted:", { id: res.insertId });
-      callback(null, {
-        id: res.insertId,
-        ...role,
-      });
-    });
+      throw err;
+    }
   }
 
-  static getById(id, callback) {
-    sql.query(`SELECT * FROM roles WHERE id = ${id}`, (err, res) => {
-      if (err) {
-        console.log("err", err);
-        callback(err, null);
-        return;
-      }
+  static async getById(id) {
+    try {
+      const [res] = await sql.promise().query("SELECT * FROM roles WHERE id = ?", [id]);
       if (res.length) {
-        console.log("found: ", res[0]);
-        callback(null, res[0]);
-        return;
+        console.log("Found:", res[0]);
+        return res[0];
+      } else {
+        throw new Error("Role not found");
       }
-      // not found with the id
-      callback({ kind: "not_found" }, null);
-    });
-  }
-  static get() {
-    return new Promise((resolve, reject) => {
-      let query =
-        "SELECT u.*, r.name AS role_name FROM users AS u JOIN roles AS r ON u.role_id = r.id";
-      sql.query(query, (err, res) => {
-        if (err) {
-          console.log(err);
-          reject(err); // Trả về lỗi nếu có lỗi xảy ra
-          return;
-        }
-        if (res.length) {
-          resolve(res); // Trả về kết quả nếu có dữ liệu được trả về
-        } else {
-          resolve([]); // Trả về mảng rỗng nếu không có dữ liệu
-        }
-      });
-    });
-  }
-  static getAll(roleName, callback) {
-    let query = "SELECT * FROM roles";
-    let query_user =
-      "Select u.*, r.name as role_name from users as u join roles r on u.role_id = r.id";
-    if (roleName) {
-      query += ` WHERE name LIKE '%${roleName}%'`;
-    } // nếu có truyền vào tên thì sẽ tìm kiếm theo tên
-
-    sql.query(query, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        callback(null, err);
-        return;
-      }
-      // console.log("role: ", res);
-      callback(null, res);
-    });
+    } catch (err) {
+      console.error("Error on get by id:", err);
+      throw err; // Rethrow to allow caller to handle
+    }
   }
 
-  static update(id, role, callback) {
-    sql.query("UPDATE roles SET ? WHERE id = ?", [role, id], (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        callback(null, err);
-        return;
-      }
+  static async getUsers() {
+    try {
+      const query = `
+      SELECT 
+          u.id, 
+          u.first_name, 
+          u.last_name, 
+          u.email, 
+          u.username, 
+          u.is_active, 
+          r.name AS role_name, 
+          s.title AS subject_name
+      FROM 
+          users u
+          JOIN roles r ON u.role_id = r.id
+          LEFT JOIN subjects s ON s.id = u.subject_id
+      ORDER BY 
+          u.id;
+    `;
+      const users = await sql.promise().query(query);
+      return {
+        data: users[0]
+      };
+    } catch (err) {
+      console.error("Error on get users:", err);
+      throw err;
+    }
+  }
+
+  static async getRoles(roleName) {
+    try {
+      const query = roleName ?
+        "SELECT * FROM roles WHERE name LIKE ?" :
+        "SELECT * FROM roles";
+      const params = roleName ? [`%${roleName}%`] : [];
+      const [res] = await sql.promise().query(query, params);
+      return res;
+    } catch (err) {
+      console.error("Error on get roles:", err);
+      throw err;
+    }
+  }
+
+  static async update(id, role) {
+    try {
+      const [res] = await sql.promise().query("UPDATE roles SET ? WHERE id = ?", [role, id]);
       if (res.affectedRows == 0) {
-        // not found  with the id
-        callback({ kind: "not_found" }, null);
-        return;
+        throw new Error("Role not found");
       }
-      console.log("updated : ", { id: id, ...role });
-      callback(null, { id: id, ...role });
-    });
+      console.log("Updated:", { id, ...role });
+      return { id, ...role };
+    } catch (err) {
+      console.error("Error on update:", err);
+
+      // Check for duplicate entry error
+      if (err.code === 'ER_DUP_ENTRY' || err.errno === 1062) {
+        return { error: "Duplicate entry", details: err.sqlMessage };
+      }
+      throw err;
+    }
   }
 
-  static delete(id, callback) {
-    sql.query("DELETE FROM roles WHERE id = ?", id, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        callback(null, err);
-        return;
-      }
+  static async delete(id) {
+    try {
+      const [res] = await sql.promise().query("DELETE FROM roles WHERE id = ?", [id]);
       if (res.affectedRows == 0) {
-        // not found with the id
-        callback({ kind: "not_found" }, null);
-        return;
+        throw new Error("Role not found");
       }
-      console.log("deleted with id: ", id);
-      callback(null, res);
-    });
+      console.log("Deleted with id:", id);
+      return res;
+    } catch (err) {
+      console.error("Error on delete:", err);
+      throw err;
+    }
+  }
+
+  static async createUser(userData) {
+    const { lastName, firstName, email, username, role, subject } = userData;
+    const randomPassword = generateRandomPassword(8);
+    const hashedPassword = await hashPassword(randomPassword);
+    try {
+      const [result] = await sql.promise().query(
+        "INSERT INTO users (first_name, last_name, email, username, password, role_id, subject_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [firstName, lastName, email, username, hashedPassword, role, subject]
+      );
+      if (result.affectedRows == 0) {
+        throw new Error("Can't Insert User");
+      }
+      const roleQuery = "SELECT name FROM roles WHERE id = ?";
+      const subjectQuery = "SELECT title FROM subjects where id = ?";
+      const [[roleResult], [subjectResult]] = await Promise.all([
+        sql.promise().query(roleQuery, [role]),
+        sql.promise().query(subjectQuery, [subject])
+      ]);
+
+      console.log(randomPassword);
+      return { 
+        userId: result.insertId, 
+        role: roleResult[0].name,
+        subject: subjectResult[0]?.title,
+        password: randomPassword
+      };
+    } catch (error) {
+      console.error('Failed to insert user:', error);
+
+      // Check for duplicate username or email
+      if (error.code === 'ER_DUP_ENTRY') {
+        if (error.sqlMessage.includes('username')) {
+          throw new Error('Username already exists');
+        } else if (error.sqlMessage.includes('email')) {
+          throw new Error('Email already exists');
+        }
+      }
+      throw error;
+    }
+  }
+
+  static async updateUser(id, userData) {
+    const { lastName, firstName, email, username, role, subject } = userData;
+    try {
+      const updateQuery = "UPDATE users SET first_name = ?, last_name = ?, email = ?, username = ?, role_id = ?, subject_id = ? WHERE id = ?";
+      const [result] = await sql.promise().query(updateQuery, [firstName, lastName, email, username, role, subject, id]);
+  
+      if (result.affectedRows == 0) {
+        throw new Error("No rows affected, user not found or data is the same");
+      }
+  
+      const roleQuery = "SELECT name FROM roles WHERE id = ?";
+      const subjectQuery = "SELECT title FROM subjects where id = ?";
+      const [[roleResult], [subjectResult]] = await Promise.all([
+        sql.promise().query(roleQuery, [role]),
+        sql.promise().query(subjectQuery, [subject])
+      ]);
+  
+      return { 
+        status: 1,
+        role: roleResult[0].name,
+        subject: subjectResult[0]?.title
+      };
+    } catch (error) {
+      console.error('Failed to update user:', error);
+
+      // Check for duplicate username or email
+      if (error.code === 'ER_DUP_ENTRY') {
+        if (error.sqlMessage.includes('username')) {
+          throw new Error('Username already exists');
+        } else if (error.sqlMessage.includes('email')) {
+          throw new Error('Email already exists');
+        }
+      }
+      throw error;
+    }
+  }
+
+  static async deleteUser(id) {
+    try {
+      const [res] = await sql.promise().query("DELETE FROM users WHERE id = ?", [id]);
+      if (res.affectedRows == 0) {
+        throw new Error("User not found");
+      }
+      console.log("Deleted with id:", id);
+      return res;
+    } catch (err) {
+      console.error("Error on delete:", err);
+      throw err;
+    }
   }
 }
 

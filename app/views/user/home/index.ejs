@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../../partials/head', {title: 'Trang chủ' }) %>
+        <link rel="stylesheet" href="/css/pages/user/home.css">
+</head>
+
+<body style="background: #F5F5F5;">
+    <%- include('../../partials/header') %>
+    <div class="container mt-5">
+        <!-- Dashboard Greeting -->
+        <div class="row">
+            <div class="col-12">
+                <h1>Xin chào, <span id="username"><%- user.first_name %></span>&nbsp;👋🎉</h1>
+                <p>Vui lòng chọn chức năng bạn muốn sử dụng:</p>
+            </div>
+        </div>
+
+        <!-- Feature Selection -->
+        <div class="row mt-2">
+            <div class="col-md-3">
+                <a href="/notebook">
+                    <div class="card mb-4 border-2 rounded-4 shadow text-center">
+                        <div class="card-header fw-semibold">
+                            Sổ đầu bài 📚
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="card-text">Công cụ giúp giáo viên lập kế hoạch và ghi chép lại các hoạt động giảng dạy hàng ngày.</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="/attendance">
+                    <div class="card mb-4 border-2 rounded-4 shadow text-center">
+                        <div class="card-header fw-semibold">
+                            Điểm danh 👨‍🎓
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="card-text">Giáo viên có thể ghi nhận sự hiện diện của học sinh trong mỗi buổi học
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-3">
+                <a href="">
+                    <div class="card mb-4 border-2 rounded-4 shadow text-center">
+                        <div class="card-header fw-semibold">
+                            Trò chơi 🎮
+                        </div>
+                        <div class="card-body p-4">
+                            <p class="card-text">Các trò chơi được thiết kế để phù hợp với nội dung bài học</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <%- include('../../partials/footer') %>
+    <%- include('../../partials/script') %>
+    <!-- <script src="/dist/home.bundle.js"></script> -->
+</body>
+
+</html>

@@ -1,0 +1,12 @@
+.dt-search{
+    margin-bottom: 10px;
+}
+
+.dt-container div.grid-x:last-child {
+    margin-top: 25px;
+    margin-bottom: 10px !important;
+}
+
+.pagination .current {
+    border-radius: 10px;
+}

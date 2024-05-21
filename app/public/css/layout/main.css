@@ -1,0 +1,68 @@
+a:focus {
+    color: white !important;
+}
+
+.badge {
+    padding: 7px 13px !important;
+}
+
+:root {
+    --modal-fade-transform: scale(0.8);
+    --modal-show-transform: scale(1);
+}
+
+@keyframes zoomInModal {
+    from {
+        transform: var(--modal-fade-transform);
+        opacity: 0;
+    }
+    to {
+        transform: var(--modal-show-transform);
+        opacity: 1;
+    }
+}
+
+.modal.fade .modal-dialog {
+    animation: zoomInModal 0.3s forwards;
+}
+
+.required:after {
+    content:" *";
+    color: red;
+}
+
+a:focus {
+    color: black !important;
+}
+
+header .nav .nav-item {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+header .nav .nav-link {
+    color: black;
+    font-weight: 500;
+}
+
+header .nav .nav-link:hover {
+    color: white !important;
+    background-color: black;
+    font-weight: 500;
+}
+
+footer p, a {
+    font-size: 13px;
+}
+
+footer {
+    margin-top: 28px;
+}
+
+body > .container {
+    min-height: 46vh;
+}
+
+.table tr {
+    cursor: pointer;
+}

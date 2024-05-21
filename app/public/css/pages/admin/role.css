@@ -1,0 +1,41 @@
+table thead th {
+    text-align: center;
+}
+
+.create-role-btn {
+    font-weight: 600;
+    background-color: #6f42c1;
+    color: #eee;
+}
+
+.create-role-btn:hover {
+    background-color: #8c68ce;
+    color: #eee;
+}
+
+.open-user-form-btn {
+    font-weight: 600;
+    background-color: rgb(51, 174, 178);
+    color: #eee;
+    width: 170px;
+    margin-bottom: 40px;
+}
+
+.open-user-form-btn:hover {
+    background-color: rgb(23, 138, 142);
+    color: #eee;
+}
+
+.table tr {
+    cursor: pointer;
+}
+
+.edit-btn {
+    color: white;
+    background: cornflowerblue;
+}
+
+.edit-btn:hover {
+    background: rgb(63, 122, 231);
+    color: white;
+}

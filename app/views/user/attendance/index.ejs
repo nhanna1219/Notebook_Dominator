@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <%- include('../../partials/head', {title: 'Điểm danh' }) %>
+  <link rel="stylesheet" href="/css/pages/user/attendance.css">
+</head>
+
+<body>
+  <%- include('../../partials/header') %>
+    <div class="container">
+    <h3 class="text-center my-5">Điểm danh</h2>
+
+      <select id="class-select" class="input-group input-group-sm" data-placeholder="Chọn lớp..." autocomplete="off" class="my-3">
+      </select>
+
+      <div class="my-3 d-none" id="content">
+        <div class="d-flex justify-content-between align-items-center my-3" id="utils-bar">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="check-all" />
+            <label class="form-check-label" for="check-all">
+              Chọn tất cả
+            </label>
+          </div>
+
+          <select id="session-select" data-placeholder="Chọn ..." autocomplete="off" class="my-3 w-25">
+            
+          </select>
+        </div>
+
+        <table class="table table-bordered table-hover mt-3 mb-5 text-center ms-auto bg-white shadow h-25 w-100" id="attendance-tbl">
+          <thead class="table-dark">
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Họ</th>
+              <th scope="col">Tên</th>
+              <th scope="col">Có mặt</th>
+              <th scope="col">Vắng có phép</th>
+              <th scope="col">Hành động</th>
+            </tr>
+          </thead>
+        </table>
+
+        <button type="button" class="btn btn-success rounded-2 ms-auto d-flex me-3" id="confirm-btn">
+          Xác nhận
+        </button>
+
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+          <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+              <i class="fa-solid fa-circle-exclamation me-2"></i>
+              <strong class="me-auto">Thông báo</strong>
+              <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%- include('../../partials/footer') %>
+    <%- include('../../partials/script') %>
+    <script src="/dist/attendance.bundle.js" type="application/javascript"></script>
+</body>
+
+</html>

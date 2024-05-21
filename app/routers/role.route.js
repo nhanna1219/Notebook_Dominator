@@ -1,13 +1,17 @@
 const router = require("express").Router();
-const roleCtrl = require("../controllers/role.controller");
-
+const roleCtrl = require("../controllers/admin/role.controller");
+const { ensureAuthenticated, forwardAuthenticated } = require("../config/auth");
 module.exports = (app) => {
+  // Role
   router.get("/", roleCtrl.index);
-  router.get("/create", roleCtrl.showFormCreate);
   router.post("/", roleCtrl.create);
-  router.get("/delete/:id", roleCtrl.delete);
   router.put("/:id", roleCtrl.update);
-  router.get("/edit/:id", roleCtrl.showFormEdit);
+  router.delete("/:id", roleCtrl.delete);
 
-  app.use("/role", router);
+  // User
+  router.get("/users", roleCtrl.getUsers);
+  router.post('/users', (req, res) => roleCtrl.createUser(req, res));
+  router.put("/users/:id", roleCtrl.updateUser);
+  router.delete("/users/:id", roleCtrl.deleteUser);
+  app.use("/role", ensureAuthenticated, router);
 };

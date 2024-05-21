@@ -1,6 +1,7 @@
 "use strict";
 const sql = require("./db");
-// const { Role, RoleService } = require("./role.model");
+const bcrypt = require("bcryptjs");
+
 class User {
   constructor(user) {
     this.first_name = user?.first_name;
@@ -13,18 +14,51 @@ class User {
 }
 
 class UserService {
-  static getAll(callback) {
-    let query =
-      "Select u.*, r.name as role_name from users as u join roles r on u.role_id = r.id";
-    sql.query(query, (err, res) => {
-      if (err) {
-        console.log(err);
-        callback(null, err);
-        return;
+  static async getAll() {
+    const query = "SELECT u.*, r.name as role_name FROM users AS u JOIN roles r ON u.role_id = r.id";
+    try {
+      const [results] = await sql.promise().query(query);
+      return results;
+    } catch (err) {
+      console.error("Error fetching users: ", err);
+      throw err;
+    }
+  }
+
+  static async login(username, password) {
+    const query = "SELECT u.id, u.first_name, u.last_name, u.username, u.password, r.id as role_id, r.name as role_name FROM users AS u JOIN roles r ON u.role_id = r.id WHERE u.username = ?";
+    try {
+      const [results] = await sql.promise().query(query, [username]);
+      if (results.length === 0) {
+        return -1; // not exist user name 
       }
-      console.log(res);
-      callback(null, res);
-    });
+      const user = results[0];
+      const passwordIsValid = await bcrypt.compare(password, user.password);
+      if (!passwordIsValid) {
+        return 0; // password is not valid
+      }
+      delete user.password;
+      return user;
+    } catch (err) {
+      console.error("Login error: ", err);
+      throw err;
+    }
+  }
+  
+
+  static async findById(id) {
+    const query = "SELECT u.*, r.name as role_name FROM users AS u JOIN roles r ON u.role_id = r.id WHERE u.id = ?";
+    try {
+      const [results] = await sql.promise().query(query, [id]);
+      if (results.length) {
+        return results[0];
+      }
+      throw new Error("User not found");
+    } catch (err) {
+      console.error("Error finding user by ID: ", err);
+      throw err;
+    }
   }
 }
+
 module.exports = { User, UserService };
