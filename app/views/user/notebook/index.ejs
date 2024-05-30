@@ -1,18 +1,717 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <%- include('../../partials/head', {title: 'Sổ đầu bài' }) %>
+  <%- include('../../partials/head', {title: 'Sổ đầu bài' }) %>
     <link rel="stylesheet" href="/css/pages/user/home.css">
+    <link rel="stylesheet" href="/css/pages/user/notebook.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
+
 <body>
   <%- include('../../partials/header') %>
-  <div class="container my-5">
-  
-  </div>
+    <div class="container my-5">
+      <!-- Nav tabs -->
+      <ul class="nav nav-tabs mb-5" id="notebook-tab" role="tablist" aria-orientation="vertical">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="note-tab" data-bs-toggle="pill" data-bs-target="#note" type="button"
+            role="tab" aria-controls="note" aria-selected="true">Ghi Sổ</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history" type="button"
+            role="tab" aria-controls="history" aria-selected="false">Lịch Sử Ghi</button>
+        </li>
+      </ul>
 
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="note" role="tabpanel" aria-labelledby="note-tab">
+          <h2 class="my-3">Sổ đầu bài</h2>
+          <div class="alert fade d-none" role="alert">
+            This is a success alert—check it out!
+          </div>
+          <form id="note-form" action="/notebook/note" method="POST" class="needs-validation" novalidate>
+            <div class="form-group my-3">
+              <label for="class-select" class="required">Lớp</label>
+              <input type="text" id="class-select" name="class_id" required>
+              <div class="invalid-feedback">
+                Vui lòng chọn lớp.
+              </div>
+            </div>
+            <div id="content" class="d-none">
+              <div class="form-group my-3">
+                <label for="session-select" class="required">Tiết học</label>
+                <input type="number" id="session-select" name="schedule_id" required>
+                <div class="invalid-feedback">
+                  Vui lòng chọn tiết học.
+                </div>
+              </div>
+              <div class="form-group my-3">
+                <label for="lesson-select" class="required">Bài học</label>
+                <input type="number" id="lesson-select" name="lesson_id" required>
+                <div class="invalid-feedback">
+                  Vui lòng chọn bài học.
+                </div>
+              </div>
+              <div class="form-group my-3">
+                <label for="note" class="required">Ghi chú</label>
+                <textarea class="form-control" id="note" name="note" rows="4" required></textarea>
+                <div class="invalid-feedback">
+                  Vui lòng nhập ghi chú.
+                </div>
+              </div>
+              <div class="form-group my-3">
+                <label for="point" class="required">Điểm</label>
+                <input type="number" class="form-control" id="point" name="point" min="0" max="10" required>
+                <div class="invalid-feedback">
+                  Vui lòng nhập điểm từ 0 - 10.
+                </div>
+              </div>
+            </div>
+            <div class="d-flex d-none justify-content-end btn-gp">
+              <button type="button" class="btn btn-secondary rounded-2 me-3" id="reset-btn">Reset</button>
+              <button type="submit" class="btn btn-success rounded-2 save-note-btn">Lưu sổ</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+        <div class="d-flex my-3 justify-content-center gap-5">
+          <div class="form-group d-flex" style="width: 220px;">
+            <label for="week-history-select" style="margin-top: auto; margin-bottom: auto; margin-right: 13px">Tuần:</label>
+            <input type="text" id="week-history-select" name="week" class="w-100">
+          </div>
+          <div class="form-group d-flex" style="width: 210px;">
+            <label for="class-history-select" style="margin-top: auto; margin-bottom: auto; margin-right: 13px">Lớp:</label>
+            <input type="text" id="class-history-select" name="class_id" class="w-100">
+          </div>
+        </div>
+        <div class="w-100 text-end mb-3">
+          <button id="export-pdf-btn" class="btn btn-danger me-2">Xuất PDF</button>
+          <button id="export-excel-btn" class="btn btn-success">Xuất Excel</button>
+        </div>
 
-  <%- include('../../partials/footer') %>
-  <%- include('../../partials/script') %>
-  <script src="dist/notebook.bundle.js"></script>
+        <div class="table-container">
+          <table id="schedule-table"
+            class="table tableFixHead table-bordered border-primary table-responsive table-success align-middle mt-4 text-center shadow-sm"
+            style="width:100%">
+            <thead class="table-dark">
+              <tr>
+                <th></th>
+                <th>Buổi</th>
+                <th>Tiết học</th>
+                <th>Môn học</th>
+                <th>Bài học</th>
+                <th>Ghi chú</th>
+                <th>Điểm</th>
+                <th>Lớp</th>
+                <th>Giáo viên</th>
+                <th>Ngày tạo</th>
+                <th>Ngày cập nhật</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Thứ 2 -->
+              <tr>
+                <td rowspan="9"><strong>Thứ 2</strong></td>
+                <td rowspan="5"><strong>Buổi Sáng</strong></td>
+                <td>Tiết 1 (7:30 - 8:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Tiết 2 (8:15 - 9:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 3 (9:00 - 9:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 4 (9:45 - 10:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 5 (10:30 - 11:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td rowspan="4"><strong>Buổi Chiều</strong></td>
+                <td>Tiết 6 (13:00 - 13:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 7 (13:45 - 14:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 8 (14:30 - 15:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 9 (15:15 - 16:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <!-- Thứ 3 -->
+              <tr>
+                <td rowspan="9"><strong>Thứ 3</strong></td>
+                <td rowspan="5"><strong>Buổi Sáng</strong></td>
+                <td>Tiết 1 (7:30 - 8:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Tiết 2 (8:15 - 9:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 3 (9:00 - 9:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 4 (9:45 - 10:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 5 (10:30 - 11:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td rowspan="4"><strong>Buổi Chiều</strong></td>
+                <td>Tiết 6 (13:00 - 13:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 7 (13:45 - 14:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 8 (14:30 - 15:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 9 (15:15 - 16:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <!-- Thứ 4 -->
+              <tr>
+                <td rowspan="9"><strong>Thứ 4</strong></td>
+                <td rowspan="5"><strong>Buổi Sáng</strong></td>
+                <td>Tiết 1 (7:30 - 8:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Tiết 2 (8:15 - 9:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 3 (9:00 - 9:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 4 (9:45 - 10:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 5 (10:30 - 11:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td rowspan="4"><strong>Buổi Chiều</strong></td>
+                <td>Tiết 6 (13:00 - 13:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 7 (13:45 - 14:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 8 (14:30 - 15:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 9 (15:15 - 16:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <!-- Thứ 5 -->
+              <tr>
+                <td rowspan="9"><strong>Thứ 5</strong></td>
+                <td rowspan="5"><strong>Buổi Sáng</strong></td>
+                <td>Tiết 1 (7:30 - 8:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Tiết 2 (8:15 - 9:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 3 (9:00 - 9:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 4 (9:45 - 10:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 5 (10:30 - 11:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td rowspan="4"><strong>Buổi Chiều</strong></td>
+                <td>Tiết 6 (13:00 - 13:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 7 (13:45 - 14:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 8 (14:30 - 15:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 9 (15:15 - 16:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <!-- Thứ 6 -->
+              <tr>
+                <td rowspan="9"><strong>Thứ 6</strong></td>
+                <td rowspan="5"><strong>Buổi Sáng</strong></td>
+                <td>Tiết 1 (7:30 - 8:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Tiết 2 (8:15 - 9:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 3 (9:00 - 9:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 4 (9:45 - 10:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 5 (10:30 - 11:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td rowspan="4"><strong>Buổi Chiều</strong></td>
+                <td>Tiết 6 (13:00 - 13:45)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 7 (13:45 - 14:30)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 8 (14:30 - 15:15)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+              <tr>
+                <td>Tiết 9 (15:15 - 16:00)</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="d-none"></td>
+                <td class="d-none"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <%- include('../../partials/footer') %>
+    <%- include('../../partials/script') %>
+    <script src="dist/notebook.bundle.js"></script>
 </body>
+
 </html>

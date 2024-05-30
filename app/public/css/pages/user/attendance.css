@@ -1,0 +1,4 @@
+.ts-dropdown .no-results {
+    color: #999;
+    pointer-events: none;
+}

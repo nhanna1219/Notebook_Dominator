@@ -75,12 +75,13 @@ document.addEventListener("DOMContentLoaded", function () {
               data: "is_present",
               orderable: false,
               searchable: false,
-              render: (data, type) => {
+              render: (data, type, row) => {
                 if (type === "display") {
                   if (data) {
-                    return `<button class="btn btn-warning note-btn d-none btn-sm rounded-2">Ghi chú</button>`;
+                    return `<button class="btn btn-primary note-btn d-none btn-sm rounded-2">Ghi chú</button>`;
                   }
-                  return `<button class="btn btn-warning note-btn btn-sm rounded-2">Ghi chú</button>`;
+
+                  return (!row.note && row.note?.length === 0) ? `<button class="btn btn-primary note-btn btn-sm rounded-2">Ghi chú</button>` : `<button class="btn btn-warning note-btn btn-sm rounded-2">Ghi chú</button>`;
                 }
                 return data;
               },
@@ -144,13 +145,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const isCheckedAll = checkedCheckboxes.length === checkboxes.length;
             $checkAll.prop('checked', isCheckedAll);
 
-            const showToast = (content) => {
-              const toastLiveExample = document.getElementById("liveToast");
-              const toastBody = toastLiveExample.querySelector(".toast-body");
-              toastBody.innerText = content;
-              const toast = new bootstrap.Toast(toastLiveExample);
+            function showToast(message, isError = false) {
+              const toastBody = document.querySelector('.toast-body');
+              toastBody.innerText = message;
+              const toast = new bootstrap.Toast(document.querySelector('.toast'));
               toast.show();
-            };
+            }
 
             // Handle confirm
             const confirmButtonEvent = async () => {
@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 Swal.fire({
                   input: "textarea",
                   inputLabel: "Lý do vắng",
-                  inputPlaceholder: "Type your message here...",
+                  inputPlaceholder: "Ghi lí do vắng ở đây...",
                   inputValue: data.note ? data.note : "",
                   confirmButtonText: "Xác nhận",
                   showCancelButton: true,
@@ -322,7 +322,7 @@ document.addEventListener("DOMContentLoaded", function () {
   async function chooseClass() {
     const classes = await getClasses();
     const classSelectInstance = new TomSelect('#class-select', {
-      options: classes,
+      options: classes.length ? classes : [{ id: 0, className: 'Bạn không có tiết vào hôm nay!' }],
       valueField: 'id',
       labelField: 'className',
       searchField: 'className',
@@ -345,6 +345,15 @@ document.addEventListener("DOMContentLoaded", function () {
       },
       onChange: (value) => {
         $('#check-all').prop('checked', false);
+      },
+      render: {
+        option: function(data, escape) {
+          if (data.id === 0) {
+            return '<div class="option no-results">' + escape(data.className) + '</div>';
+          } else {
+            return '<div class="option">' + escape(data.className) + '</div>';
+          }
+        }
       }
     });
   }

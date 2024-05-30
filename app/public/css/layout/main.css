@@ -66,3 +66,7 @@ body > .container {
 .table tr {
     cursor: pointer;
 }
+
+.alert.fade {
+    transition: opacity 300ms ease-in-out;
+}

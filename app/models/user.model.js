@@ -59,6 +59,20 @@ class UserService {
       throw err;
     }
   }
+
+  static async getClassOfHomeroomTeacher(id) {
+    const query = "SELECT id FROM classes WHERE homeroom_teacher_id = ?";
+    try {
+      const [results] = await sql.promise().query(query, [id]);
+      if (results.length) {
+        return results[0];
+      }
+      return null;
+    } catch (err) {
+      console.error("Error getClassOfHomeroomTeacher: ", err);
+      throw err;
+    }
+  }
 }
 
 module.exports = { User, UserService };

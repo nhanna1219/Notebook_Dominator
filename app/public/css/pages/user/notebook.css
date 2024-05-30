@@ -1,0 +1,31 @@
+.form-group.required .control-label:after {
+    content: "*";
+    color: red;
+    margin-left: 5px;
+}
+
+.ts-wrapper.single.preloaded::after {
+    content: none !important;
+}
+
+table thead th {
+    text-align: center !important;
+}
+
+#week-history-select-ts-control,
+#class-history-select-ts-control {
+    height: 20px !important;
+}
+
+.ts-dropdown .no-results {
+    color: #999;
+    pointer-events: none;
+}
+
+.table-container {
+    overflow-x: auto;
+    overflow-y: auto;
+    height: 600px;
+}
+
+.tableFixHead thead th { position: sticky; top: 0; z-index: 1; }
